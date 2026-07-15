@@ -5,17 +5,28 @@
 (function () {
 var logoPath = '/customize/CryptPad_logo_grey.svg';
 // --------------- BEGIN AURION EDITS -------------------------
-console.log("Pre-loading actif : " + window.location.href);
-window.addEventListener('message', function(event) {
+    console.log("Pre-loading actif : " + window.location.href);
 
-    console.log("Receveid message from origin : ", event.origin);
-    console.log("Content : ", event.data);
+    // 1. Écouter le signal du Plugin pour recevoir le secret
+    window.addEventListener('message', function(event) {
+        // Sécurité : Vérifiez bien l'origine de votre Webmail
+        if (event.origin !== 'https://officialweb.mail.aurionmail.org') return;
 
-    if (event.data && event.data.type === 'TEST_SYNC') {
-        alert("Success : " + event.data.payload);
-    }
-});
+        if (event.data && event.data.type === 'SECRET_TRANSFER') {
+            const secret = event.data.secret;
+            console.log("Secret reçu par CryptPad avec succès :", secret);
+            // Plus tard, vous utiliserez ce secret ici pour déchiffrer votre session
+        }
+    });
 
+    // 2. Signaler au Plugin que nous sommes prêts
+    // On attend que la fenêtre soit totalement chargée
+    window.addEventListener('load', function() {
+        if (window.opener) {
+            console.log("CryptPad prêt, envoi du signal CRYPTPAD_READY");
+            window.opener.postMessage({ type: 'CRYPTPAD_READY' }, 'https://officialweb.mail.aurionmail.org');
+        }
+    });
 // --------------- END AURION EDITS -------------------------
 var elem = document.createElement('div');
 elem.setAttribute('id', 'placeholder');
