@@ -14,66 +14,40 @@ define([
 // --------------- BEGIN AURION EDITS -------------------------
 (function() {
   let tempSecret = null;
-  console.log("Loading SSO...");
 
-  // Fonction utilitaire pour supprimer proprement la clé de manière asynchrone
-  function deleteTempKeyFromDB() {
-    const deleteReq = indexedDB.open("DriveAuth", 1);
-    deleteReq.onsuccess = () => {
-      const db = deleteReq.result;
-      if (!db.objectStoreNames.contains("keys")) return;
-      const tx = db.transaction("keys", "readwrite");
-      const store = tx.objectStore("keys");
-      store.delete("temp_key");
-      console.log("IndexedDB: temp_key clean-up request sent.");
-    };
-  }
-
-      // 1. Récupération du secret depuis IndexedDB
   const req = indexedDB.open("DriveAuth", 1);
-  console.log("Attempting to load CryptDrive 1...");
   req.onsuccess = () => {
-    console.log("Attempting to load CryptDrive 2...");
     const db = req.result;
     if (!db.objectStoreNames.contains("keys")){
       console.error("Attempting to load CryptDrive : error:", db);
       return;
     };
-    console.log("Attempting to load CryptDrive 3...");
     const tx = db.transaction("keys", "readwrite");
     const store = tx.objectStore("keys");
     const getReq = store.get("temp_key");
-    console.log("Attempting to load CryptDrive 4...");
     getReq.onsuccess = () => {
       console.log("IndexedDB retrieval result:", getReq.result);
       if (getReq.result) {
-        // On stocke temporairement dans une variable locale à notre fonction
         tempSecret = getReq.result;
         window.CRYPTDRIVE_SECRET = tempSecret;
-        console.log("CryptDrive secret loaded into temporary RAM. Watching DOM...");
-        // On lance l'observation du DOM uniquement si on a récupéré un secret
         startDOMObserver();
       }
     };
   };
 
 
-  // 2. Observation du DOM pour réagir aux formulaires ou à la connexion
   function startDOMObserver() {
     const observer = new MutationObserver((mutations, obs) => {
-      // Cas A : Formulaire de mot de passe présent
       const passField = document.getElementById('password');
       const confirmField = document.getElementById('passwordconfirm');
       const submitBtn = document.getElementById('cp-ssoauth-button');
 
       if (passField && window.CRYPTDRIVE_SECRET) {
-        // Injection du secret dans les champs de mot de passe
         passField.value = window.CRYPTDRIVE_SECRET;
         if (confirmField) {
           confirmField.value = window.CRYPTDRIVE_SECRET;
         }
 
-        // On déclenche les événements pour que React/Vue/Cryptpad détecte le changement
         passField.dispatchEvent(new Event('input', { bubbles: true }));
         if (confirmField) {
           confirmField.dispatchEvent(new Event('input', { bubbles: true }));
@@ -87,29 +61,13 @@ define([
           console.error("Submit button lost during timeout.");
         }  
       }, 5000);
-
-
-        console.log("Success: Secret injected into password fields.");
-        
-        // On coupe l'observeur, on nettoie la variable locale et on purge la DB
         window.CRYPTDRIVE_SECRET = null;
-        return;
-      }
-
-      // Cas B : L'utilisateur est déjà connecté (présence du menu toolbar)
-      const userMenu = document.querySelector('.cp-toolbar-user-dropdown');
-      if (userMenu) {
-        console.log("User already logged in. Destroying temporary secret.");
-        // Le secret est détruit et purgé de la DB
-        window.CRYPTDRIVE_SECRET = null;
-        obs.disconnect();
         return;
       }
       const okModalBtn = document.querySelector('button.btn.ok.primary');
       if (okModalBtn) {
         console.log("Warning modal detected. Clicking OK button...");
         
-        // Un léger délai pour s'assurer que la modale est prête à recevoir l'événement
         setTimeout(() => {
           okModalBtn.click();
           console.log("Success: Modal confirmed.");
@@ -121,13 +79,11 @@ define([
 
     });
 
-    // On commence à écouter les changements sur tout le body
     observer.observe(document.body, {
       childList: true,
       subtree: true
     });
 
-    // Sécurité : On arrête d'observer après 30 secondes pour éviter de surcharger si rien ne se passe
     setTimeout(() => {
       if (window.CRYPTDRIVE_SECRET) {
         console.log("Timeout: Neither form nor session detected. Purging secret.");
