@@ -333,7 +333,7 @@ height: 100vh !important;
 
     // --- 2. BANDEAU D'INFORMATION (ALERTE DYNAMIQUE) ---
     .cp-app-drive-content-info-box {
-        display: flex !important;
+        display: flex;
         align-items: center !important;
         gap: 8px !important;
        
@@ -610,6 +610,106 @@ div.cp-app-drive-content-grid {
         margin: 0 !important;
     }
 
+    // Variables pour faciliter la maintenance des couleurs
+              // Gris très clair moderne
+           
+        @icon-color: #9ca3af;      // Gris moyen pour les icônes secondaires
+        @icon-hover: #4b5563;      // Gris plus foncé au survol
+        
+
+        #cp-app-drive-search {
+            padding-top: 40px;
+            padding-bottom: 40px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 100%;
+        margin-right: auto;
+        margin-left: auto;
+        max-width: 400px; // Ajustez selon vos besoins d'intégration
+        font-family: system-ui, -apple-system, sans-serif;
+
+        // L'icône de recherche principale (loupe) placée devant
+        .cp-app-drive-tree-search-icon {
+            position: absolute;
+            left: 12px;
+            width: 18px;
+            height: 18px;
+            color: @icon-color;
+            pointer-events: none; // Permet de cliquer à travers l'icône pour focus le input
+            transition: color 0.2s ease;
+        }
+
+        // Cible l'input déjà stylé pour forcer le décalage du texte à gauche (pour la loupe)
+        // et réserver de l'espace à droite pour les boutons d'action
+        input#cp-app-drive-search-input {
+            width: 100%;
+            padding-left: 40px !important;  // Espace pour la loupe à gauche
+            padding-right: 40px !important; // Espace pour la croix / spinner à droite
+            
+            // Effet visuel moderne quand l'utilisateur clique dans le champ
+            
+        }
+
+        // Conteneur de droite pour la croix d'annulation
+        .cp-app-drive-search-cancel {
+            position: absolute;
+            right: 14px;
+            width: 16px;
+            height: 16px;
+            color: @icon-color;
+            cursor: pointer;
+            transition: all 0.2s ease;
+
+            &:hover {
+            color: @icon-hover;
+            transform: scale(1.05);
+            }
+        }
+
+        // Conteneur pour le spinner ou la coche de validation
+        .cp-app-drive-search-spinner {
+            position: absolute;
+            right: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+
+            // Si le spinner est affiché, on masque temporairement la croix
+            // pour éviter la superposition de deux icônes au même endroit
+            &[style*="display: block"]~.cp-app-drive-search-cancel,
+            &:not([style*="display: none"])~.cp-app-drive-search-cancel {
+            opacity: 0;
+            pointer-events: none;
+            }
+
+            svg {
+            width: 16px;
+            height: 16px;
+            }
+
+            
+
+            // Icône de chargement (loader)
+            .cp-spinner svg {
+            color: @icon-color;
+            animation: spin 1s linear infinite;
+            }
+        }
+        }
+
+        // Animation fluide pour le spinner de chargement
+        @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+        }
+
+
     li.cp-app-drive-element-list, 
     li.cp-app-drive-element-row {
         display: flex !important;
@@ -621,7 +721,7 @@ div.cp-app-drive-content-grid {
 
     // EN-TÊTE DE TABLEAU
     li.cp-app-drive-element-header {
-        background-color: @cryptpad_color_grey_50 !important; // Fond d'en-tête natif de config
+        background-color: @cp_header_bg !important; // TOD
         border-bottom: 1px solid @cp_drive-icon-border !important;
         font-weight: 500 !important;
         color: @cp_drive-header-fg !important;
@@ -676,7 +776,43 @@ div.cp-app-drive-content-grid {
             overflow: hidden !important;
             text-overflow: ellipsis !important;
             display: flex !important;
-            align-items: center !important;
+            align-items: center ;
+
+               &:has(.cp-app-drive-search-path) {
+                flex-direction: column;
+                align-items: start; // Aligne le nom et le chemin au centre horizontalement
+                gap: 4px;            // Ajoute un léger espace moderne entre le nom et le chemin
+                padding: 4px 0;      // Donne un peu d'air au bloc complet
+            }
+
+            .cp-app-drive-element-name-text {
+                max-width: 100%;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
+
+            // Le style pour le chemin en dessous
+            .cp-app-drive-search-path {
+                font-size: 11px;       // Plus petit que le nom principal pour la hiérarchie visuelle
+                font-weight: 400;      // Moins épais pour ne pas surcharger
+                opacity: 0.7;          // Plus discret
+                max-width: 100%;
+                
+                .cp-app-drive-path-inner {
+                    display: flex;
+                    justify-content: flex-end;
+                    flex-flow: row-reverse wrap-reverse;
+                    overflow: hidden;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    font-size: 11px !important;
+                }
+            }
+            .cp-app-drive-search-path, .cp-app-drive-path{
+                border: none !important;
+                padding:0px !important;
+            }
         }
 
         .cp-app-drive-element-state {
@@ -738,5 +874,6 @@ div.cp-app-drive-content-grid {
         }
     }
 }
+
 
 }
