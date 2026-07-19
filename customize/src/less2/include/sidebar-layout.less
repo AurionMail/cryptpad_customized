@@ -40,24 +40,63 @@
             background: @cp_sidebar-left-bg;
             display: flex;
             flex-flow: column;
-            padding: 0px 5px;
             .cp-sidebarlayout-categories {
                 flex: 1;
+                display: flex !important;
+                flex-direction: column !important;
+
                 .cp-sidebarlayout-category {
-                    display: flex;
-                    align-items: center;
+                    display: flex !important;
+                    align-items: center !important;
+                    width: 100% !important;
+                    min-height: @variables_bar-height !important; 
+                    padding: 0px 8px 0px 12px !important;
+                    font-size: 12px !important;
+                    font-weight: 500 !important;
+                    color: @cp_sidebar-left-fg !important;
+                    cursor: pointer !important;
+                    transition: background-color 0.15s ease, color 0.15s ease !important;
+                    border-left: 2px solid transparent !important;
                     white-space: nowrap;
+                    box-shadow: none !important; 
+
                     svg {
                         flex: 0 0 auto;
+                        width: @variables_icon_width !important;
+                        height: @variables_icon_height !important;
+                        margin-right: @variables_icon_margin !important;
+                        flex-shrink: 0 !important;
+                        color: @cp_drive-header-fg !important; 
                     }
+
                     .cp-sidebarlayout-category-name {
-                        overflow: hidden;
-                        text-overflow: ellipsis;
+                        flex: 1 !important;
+                        white-space: nowrap !important;
+                        overflow: hidden !important;
+                        text-overflow: ellipsis !important;
                     }
-                    .leftside-menu-category_main();
-                    box-shadow: @cryptpad_ui_shadow;
+
                     &:focus-visible {
                         outline: @variables_focus_style;
+                    }
+                    &:hover {
+                        background-color: @cp_drive-icon-hover !important;
+                        color: @cp_sidebar-left-fg !important;
+                    }
+
+                  
+                    &.cp-leftside-active {
+                        background-color: fade(@cryptpad_color_brand, 15%) !important; 
+                        color: @cp_sidebar-left-active-fg !important;
+                        font-weight: 600 !important;
+                        border-left: 2px solid @cryptpad_color_brand !important; 
+
+                        svg {
+                            color: @cryptpad_color_brand !important;
+                        }
+                        span.cp-sidebarlayout-category-name {
+                            color: @cryptpad_color_brand !important;
+                        }
                     }
                 }
             }
