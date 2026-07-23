@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body>
+<script>
+  const CUSTOM_WEBMAIL_ORIGIN = 'https://officialweb.mail.aurionmail.org';
+  window.addEventListener('message', (event) => {
+    if (event.origin !== CUSTOM_WEBMAIL_ORIGIN) return;
+
+    if (event.data && event.data.type === 'WRITE_SECRET' && event.data.secret) {
+      const req = indexedDB.open("DriveAuth", 1);
+      
+      req.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        db.createObjectStore("keys");
+      };
+
+      req.onsuccess = (e) => {
+        const db = e.target.result;
+        const transaction = db.transaction("keys", "readwrite");
+        const store = transaction.objectStore("keys");
+        
+        // 3. Stockage temporaire avec la clé "temp_key" lue par le preload
+        store.put(event.data.secret, "temp_key");
+
+        transaction.oncomplete = () => {
+          // On valide auprès du plugin pour qu'il puisse ouvrir l'onglet
+          event.source.postMessage({ type: 'WRITE_SUCCESS' }, event.origin);
+        };
+      };
+    }
+  });
+</script>
+</body>
+</html>

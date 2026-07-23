@@ -1,0 +1,234 @@
+<!--
+SPDX-FileCopyrightText: 2023 XWiki CryptPad Team <contact@cryptpad.org> and contributors
+SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+
+<!DOCTYPE html>
+<html class="cp-app-noscroll">
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type"/>
+    <script src="/customize/pre-loading.js?ver=1.1"></script>
+    <link href="/customize/src/pre-loading.css?ver=1.0" rel="stylesheet" type="text/css">
+    <script async data-bootload="/drive/inner.js" data-main="/common/sframe-boot.js?ver=1.11" src="/components/requirejs/require.js?ver=2.3.7"></script>
+    
+    <style>
+        .loading-hidden { display: none; }
+        #editor1 { display: none; }
+        .cp-contextmenu { display: none; }
+
+        /* --- VARIABLES DE THÈME & DIMENSIONS --- */
+        :root {
+            --banner-width: 48px; /* Largeur pour contenir les boutons de 40px + padding */
+            --primary-bg-subtle: color-mix(in oklab, var(--primary-color) 10%, transparent);
+            --primary-color: #4A90E2;
+            --muted-text: #6b7280;
+            --muted-hover-bg: #f3f4f6;
+            --foreground-text: #1f2937;
+            --border-color: rgba(128, 128, 128, 0.3);
+            --bg-color: #ffffff;
+        }
+
+        /* Support du Mode Sombre si CryptPad l'utilise */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --muted-text: #9ca3af;
+                --muted-hover-bg: #374151;
+                --foreground-text: #f9fafb;
+                --bg-color: #262626;
+                --primary-color: #fafafa;
+            }
+        }
+
+        /* --- LAYOUT GLOBAL FLEXBOX --- */
+        body.cp-body-drive {
+            display: flex !important;
+            flex-direction: row !important;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        /* Conteneur principal de l'application CryptPad */
+        .cp-app-drive-content-wrapper {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* --- STYLES CONVERTIS DU BANDEAU (TAILWIND -> CSS PUR) --- */
+        #verticalBanner {
+            min-width: var(--banner-width);
+            height: 100%;
+            background-color: var(--bg-color); /* Couleur de fond du bandeau */
+            border-right: 1px solid var(--border-color);
+            box-sizing: border-box;
+            flex-shrink: 0;
+            z-index: 9999;
+        }
+
+        .nav-rail-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            align-items: center;
+            margin-left: 3px;
+            margin-right: 3px;
+        }
+
+        /* Navigation principale (haut) */
+        .nav-rail-menu {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 0%;
+            min-height: 0;
+            overflow-y: auto;
+            align-items: center;
+            gap: 4px;
+            padding: 12px 4px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Cache la barre de défilement */
+        .scroll-hidden::-webkit-scrollbar { display: none; }
+        .scroll-hidden { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Elements interactifs / Boutons & Liens */
+        .nav-item {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            border: none;
+            background: transparent;
+            color: var(--muted-text);
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.15s ease, color 0.15s ease;
+            box-sizing: border-box;
+        }
+
+        .nav-item:hover {
+            color: var(--foreground-text);
+        }
+
+        /* Item actif (Page courante) */
+        .nav-item.active {
+            background-color: var(--primary-bg-subtle);
+            color: var(--foreground-text);
+            font-weight: 500;
+        }
+
+        /* SVG & Icônes */
+        .nav-icon {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .nav-item.active .nav-icon {
+            color: var(--primary-color);
+        }
+
+        /* Navigation bas (Settings, Shortcuts, Avatar) */
+        .nav-rail-bottom {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 12px;
+            padding-left: 4px;
+            padding-right: 4px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .nav-divider {
+            width: 32px;
+            border-top: 1px solid var(--border-color);
+            margin: 4px 0;
+        }
+
+        /* Pastille Avatar Utilisateur */
+        .user-avatar {
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #ffffff;
+            overflow: hidden;
+            width: 32px;
+            height: 32px;
+            font-size: 12px;
+            flex-shrink: 0;
+            background-color: rgb(234, 88, 12);
+        }
+        .cp-toolbar-link{
+            display: none !important;
+        }
+        .cp-toolbar-title{
+            margin: 0 !important;
+            font-size: 14px !important;
+        }
+    </style>
+</head>
+<body class="cp-app-drive cp-body-drive">
+
+    <!-- BANDEAU VERTICAL CSS PUR -->
+    <div id="verticalBanner">
+        <div class="nav-rail-container">
+            <!-- Navigation Haut -->
+            <nav class="nav-rail-menu scroll-hidden" role="navigation" aria-label="Navigation">
+                <a target="_blank" class="nav-item" aria-current="page" title="Messagerie" href="https://officialweb.mail.aurionmail.org/">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg>
+                </a>
+                <a target="_blank" class="nav-item" title="Calendrier" href="https://officialweb.mail.aurionmail.org/calendar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path></svg>
+                </a>
+                <a target="_blank" class="nav-item" title="Contacts" href="https://officialweb.mail.aurionmail.org/contacts">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon"><path d="M15 13a3 3 0 1 0-6 0"></path><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"></path><circle cx="12" cy="8" r="2"></circle></svg>
+                </a>
+                
+            </nav>
+
+            <!-- Navigation Bas -->
+            <div class="nav-rail-bottom">
+                <a target="_blank" class="nav-item" title="Profil" href="/teams">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="users-round" aria-hidden="true"><path d="M18 21a8 8 0 0 0-16 0"></path><circle cx="10" cy="8" r="5"></circle><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"></path></svg>  </a>
+                <a target="_blank" class="nav-item" title="Profil" href="/profile">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="circle-user-round" aria-hidden="true"><path d="M18 20a6 6 0 0 0-12 0"></path><circle cx="12" cy="10" r="4"></circle><circle cx="12" cy="12" r="10"></circle></svg>
+                </a>
+                <a class="nav-item active" title="Docs">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="" style="width: 18px; height: 18px; flex-shrink: 0;" aria-hidden="true"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
+                </a>
+                <a target="_blank" class="nav-item" title="Paramètres" href="/settings">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- APPLICATION CRYPTPAD -->
+    <div class="cp-app-drive-content-wrapper">
+        <div id="cp-toolbar" class="cp-toolbar-container"></div>
+        <div class="cp-app-drive-container">
+            <div id="cp-app-drive-tree"></div>
+            <div id="cp-app-drive-content-container">
+                <div id="cp-app-drive-connection-state" class="cp-banner cp-banner-danger" style="display: none"></div>
+                <div id="cp-app-drive-content" tabindex="2"></div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
