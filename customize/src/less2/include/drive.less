@@ -390,11 +390,7 @@ div.cp-app-drive-content-grid {
         gap: 16px;
     }
 
-    &:has(.cp-app-drive-element-thumbnail) {
-             svg {
-                display: none !important;
-            }
-        }
+    
 
     // Masquer les éléments purement textuels de la vue "Liste" qui polluent la grille
     .cp-app-drive-element-list,
@@ -473,7 +469,11 @@ div.cp-app-drive-content-grid {
         transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
         box-sizing: border-box;
 
-        
+        &:has(.cp-app-drive-element-thumbnail) {
+             svg {
+                display: none !important;
+            }
+        }
 
         // États de survol et sélection (Style Google Drive)
         &:hover:not(.cp-app-disabled):not(.cp-app-drive-element-header) {
@@ -592,7 +592,11 @@ div.cp-app-drive-content-grid {
 
 // --- 4. LA LISTE DES FICHIERS ---
 #cp-app-drive-content-folder.cp-app-drive-content-list {
-
+   
+    .cp-app-drive-element-thumbnail{
+        display: none !important;
+    }
+    
     ul {
         list-style: none !important;
         padding: 0 !important;
