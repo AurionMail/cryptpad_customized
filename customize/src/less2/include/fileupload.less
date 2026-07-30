@@ -25,12 +25,16 @@
         box-shadow: 0px 0px 0px rgba(0,0,0,0);
         box-sizing: border-box;
         z-index: 100001; //Z file upload table container: just above the file picker
-        display: block !important;
+        display: none;
         color: @cp_upload-fg;
         max-height: 180px;
         max-width: calc((100% - 55px) * 0.15);
         overflow-y: auto;
         overflow-x: hidden;
+
+        .cp-app-drive & {
+            display: block !important;
+        }
        
         @media screen and (max-width: @browser_media-medium-screen) {
             left: 1vw; right: 1vw; bottom: 1vw;
