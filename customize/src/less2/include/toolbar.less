@@ -540,22 +540,21 @@
                         width: 100%;
                     }
                     .cp-toolbar-title-editable{
-                        max-width: ~"calc(100vw - 26px)";
+                        max-width: "calc(100vw - 26px)";
                         display: inline-block;
                         overflow: hidden;
                         text-overflow: ellipsis;
-                       font-size: 16px !important;
+                       font-size: 15px !important;
                         height: @toolbar_line-height;
                         box-sizing: border-box;
                         line-height: @toolbar_line-height;
                         border: 1px solid transparent;
                     }
                     .cp-toolbar-title-value {
-                        max-width: ~"calc(100vw - 26px)";
+                        max-width: "calc(100vw - 26px)";
                         display: inline-block;
                         overflow: hidden;
                         text-overflow: ellipsis;
-                        font-size: @colortheme_app-font-size;
                         height: @toolbar_line-height;
                         box-sizing: border-box;
                         line-height: @toolbar_line-height;
@@ -670,13 +669,14 @@
                         .cp-dropdown-content {
                             padding-bottom: 10px;
                         }
-                        & > button {
+                         button {
                             display: flex;
                             justify-content: center;
                             align-items: center;
                             height: 32px; // MODIFIÉ : h-8
                             width: 32px; // MODIFIÉ : w-8
-                            border-radius: @variables_radius;
+                            border-radius: 68px;
+                            background-color: @cryptpad_color_brand;
                             padding: 0;
                             transition: background-color 0.2s; // MODIFIÉ : Transition douce
                             &:hover {
@@ -699,6 +699,10 @@
                                 .avatar_main(24px); // MODIFIÉ : Réduit de 64px à 24px
                                 border: 0;
                             }
+                        }
+                        .cp-avatar-default{
+                            color:white !important;
+                            font-weight: bold !important;
                         }
                     }
                     .cp-toolbar-limit {
@@ -755,7 +759,8 @@
             .cp-toolbar-title-value {
                 border: 1px solid transparent;
                 padding: 0 5px;
-                font-size: 30px;
+                font-size: 14px;
+                font-weight: bold;
                 vertical-align: middle;
                 white-space: nowrap;
             }
@@ -1003,16 +1008,22 @@
                 .cp-dropdown-content {
                     padding-bottom: 10px;
                 }
+                .cp-avatar-default{
+                            color:white !important;
+                            font-weight: bold !important;
+                        }
                 & > button {
                     display: flex;
                     justify-content: center;
                     align-items: center;
                     height: @toolbar_top-height - 10px;
                     width: @toolbar_top-height - 10px;
-                    border-radius: @variables_radius;
+                    border-radius: 68px;
+                    background-color: @cryptpad_color_brand;
+
                     padding: 0;
                     &:hover {
-                        border-color: transparent;
+                        border-color: @cryptpad_color_brand;
                         background-color: @cp_toolbar-fade1;
                     }
                     span {
