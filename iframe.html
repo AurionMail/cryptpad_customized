@@ -7,6 +7,7 @@
   window.addEventListener('message', (event) => {
     if (event.origin !== CUSTOM_WEBMAIL_ORIGIN) return;
 
+    // Secret given PGP plugin to login
     if (event.data && event.data.type === 'WRITE_SECRET' && event.data.secret) {
       const req = indexedDB.open("DriveAuth", 1);
       
@@ -20,14 +21,23 @@
         const transaction = db.transaction("keys", "readwrite");
         const store = transaction.objectStore("keys");
         
-        // 3. Stockage temporaire avec la clé "temp_key" lue par le preload
         store.put(event.data.secret, "temp_key");
 
         transaction.oncomplete = () => {
-          // On valide auprès du plugin pour qu'il puisse ouvrir l'onglet
-          event.source.postMessage({ type: 'WRITE_SUCCESS' }, event.origin);
+        event.source.postMessage({ type: 'WRITE_SUCCESS' }, event.origin);
         };
       };
+    }
+    // logout call by SSO
+    if(event.data && event.data.type === 'LOGOUT'){
+      // 1. Ask for logout to other cryptpad tabs if opened. 
+      // If they are opened, we use the logout cryptpad buildin function
+
+
+      // Else if it is not opened, we remove the loginToken, 
+      // sessionJWT, SSO_seed, username and block hash from pad localstorage
+      // ssotoken from cookies
+      // localforage and cp_cache from indexedDB
     }
   });
 </script>
