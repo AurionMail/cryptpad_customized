@@ -3,9 +3,59 @@
 <head><meta charset="utf-8"></head>
 <body>
 <script>
-  const CUSTOM_WEBMAIL_ORIGIN = 'https://officialweb.mail.aurionmail.org';
+  const WEBMAIL_ORIGIN_WP = 'https://officialweb.mail.aurionmail.org';
+  const SSO_ORIGIN_WP = 'https://sso.aurionmail.org';
+
+  function clearCookies() {
+    const cookiesToClear = ['ssotoken', 'token', 'session'];
+    const path = '; path=/';
+    const expires = '; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+
+    cookiesToClear.forEach((name) => {
+      document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT' + path;
+      document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; domain=' + window.location.hostname + path;
+    });
+  }
+
+  function clearLocalStorage() {
+    try {
+      const keysToRemove = [
+        'loginToken',
+        'sessionJWT',
+        'SSO_seed',
+        'username',
+        'Block_hash',
+        'pad'
+      ];
+
+      // Supprime les clés spécifiques de la liste
+      keysToRemove.forEach((key) => localStorage.removeItem(key));
+
+    } catch (e) {
+      console.error('Erreur nettoyage localStorage CryptPad :', e);
+    }
+  }
+
+  async function performStorageCleanup() {
+    clearLocalStorage();
+    clearCookies();
+
+    const dbsToClear = ['localforage', 'cp_cache'];
+
+    const deleteDBPromises = dbsToClear.map((dbName) => {
+      return new Promise((resolve) => {
+        const req = indexedDB.deleteDatabase(dbName);
+        req.onsuccess = () => resolve();
+        req.onerror = () => resolve(); // On résout même en cas d'erreur pour ne pas bloquer
+        req.onblocked = () => resolve();
+      });
+    });
+
+    await Promise.all(deleteDBPromises);
+  }
+
   window.addEventListener('message', (event) => {
-    if (event.origin !== CUSTOM_WEBMAIL_ORIGIN) return;
+    if (event.origin !== WEBMAIL_ORIGIN_WP && event.origin !== SSO_ORIGIN_WP) return;
 
     // Secret given PGP plugin to login
     if (event.data && event.data.type === 'WRITE_SECRET' && event.data.secret) {
@@ -39,6 +89,59 @@
       // ssotoken from cookies
       // localforage and cp_cache from indexedDB
     }
+
+
+    if (event.data && event.data.type === 'LOGOUT') {
+      const channel = new BroadcastChannel('aurion-session-bus');
+      let responded = false;
+      const callerSource = event.source;
+      const callerOrigin = event.origin;
+
+      const requestId = Math.random().toString(36).substring(2);
+
+      const handleMessage = (msgEvent) => {
+        if (
+          msgEvent.data &&
+          msgEvent.data.type === 'RESPONSE_LOGOUT_REQUEST' &&
+          msgEvent.data.requestId === requestId
+        ) {
+          responded = true;
+          cleanupAndClose();
+          callerSource.postMessage({ type: 'LOGOUT_SUCCESS' }, callerOrigin);
+        }
+      };
+
+      channel.addEventListener('message', handleMessage);
+
+      // Émission de la demande vers les onglets CryptPad ouverts
+      channel.postMessage({
+        type: 'LOGOUT_REQUEST',
+        requestId: requestId
+      });
+
+      // Attente d'un onglet réactif pendant 1,5 s
+      const timeoutId = setTimeout(async () => {
+        if (!responded) {
+          cleanupAndClose();
+          try {
+            // Aucun onglet CryptPad ouvert : suppression manuelle du stockage
+            await performStorageCleanup();
+          } catch (err) {
+            console.error('Erreur lors du nettoyage du stockage CryptPad :', err);
+          } finally {
+            // Notification au SSO que le ménage est terminé
+            callerSource.postMessage({ type: 'LOGOUT_SUCCESS' }, callerOrigin);
+          }
+        }
+      }, 1500);
+
+      function cleanupAndClose() {
+        clearTimeout(timeoutId);
+        channel.removeEventListener('message', handleMessage);
+        channel.close();
+      }
+    }
+
   });
 </script>
 </body>

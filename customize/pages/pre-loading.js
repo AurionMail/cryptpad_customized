@@ -70,6 +70,114 @@ document.addEventListener('DOMContentLoaded', function() {
     purgeTempKey();
 
 })();
+
+        /* // BEGIN AURION SSO LOGOUT
+        (function initAurionSsoLogout() {
+            
+            if(window.self !== window.top){
+                console.log('Aurion SSO logout: initialized BroadcastChannel for logout requests in iframe');
+                // messagr ecu logout
+                var $logoutBtn = $('.cp-toolbar-menu-logout');
+                        console.log('Aurion SSO logout: attempting to trigger logout', $logoutBtn);
+                        if ($logoutBtn.length) {
+                            $logoutBtn.trigger('click');
+                            console.log('Aurion SSO logout: triggered click on logout button');
+                        }
+            }else{
+                console.log('Aurion SSO logout: initialized BroadcastChannel for logout requests');
+                var CHANNEL_NAME = 'aurion-session-bus';
+                var channel = new BroadcastChannel(CHANNEL_NAME);
+                channel.onmessage = function (event) {
+                    var msg = event.data;
+
+                    if (msg && msg.type === 'LOGOUT_REQUEST') {
+                        console.log('Aurion SSO logout: received logout request from another tab');
+                        channel.postMessage({
+                            type: 'RESPONSE_LOGOUT_REQUEST',
+                            requestId: msg.requestId
+                        });
+                        // envoie message pour logout
+                    }
+                };
+            }
+            
+
+        })(); */
+
+        // BEGIN AURION SSO LOGOUT
+(function initAurionSsoLogout() {
+    
+    if (window.self !== window.top) {
+        // --- CAS 1 : Exécuté dans l'iframe (sand.) ---
+        console.log('Aurion SSO logout: initialized message listener in iframe');
+        
+        // Écouter le message venant de la page parente (onglet pad.)
+        window.addEventListener('message', function(event) {
+            var msg = event.data;
+            
+            if (msg && msg.type === 'IFRAME_LOGOUT_REQUEST') {
+                console.log('Aurion SSO logout: received logout request from parent page');
+                
+                var $logoutBtn = $('.cp-toolbar-menu-logout');
+                console.log('Aurion SSO logout: attempting to trigger logout', $logoutBtn);
+                
+                if ($logoutBtn.length) {
+                    $logoutBtn.trigger('click');
+                    console.log('Aurion SSO logout: triggered click on logout button');
+                }
+                
+                // Informer la page parente (pad.) que le logout a été déclenché
+                window.parent.postMessage({
+                    type: 'IFRAME_LOGOUT_DONE',
+                    requestId: msg.requestId
+                }, '*');
+            }
+        });
+
+    } else {
+        // --- CAS 2 : Exécuté dans la page principale (onglet pad.) ---
+        console.log('Aurion SSO logout: initialized BroadcastChannel for logout requests');
+        var CHANNEL_NAME = 'aurion-session-bus';
+        var channel = new BroadcastChannel(CHANNEL_NAME);
+        
+        channel.onmessage = function (event) {
+            var msg = event.data;
+
+            if (msg && msg.type === 'LOGOUT_REQUEST') {
+                console.log('Aurion SSO logout: received logout request from another tab (sso)');
+                var $iframe = $('#sbox-iframe').first(); 
+                
+                if ($iframe.length) {
+                    console.log('Aurion SSO logout: forwarding logout request to iframe (sand)');
+                    
+                    // Transférer la requête à l'iframe via postMessage
+                    $iframe[0].contentWindow.postMessage({
+                        type: 'IFRAME_LOGOUT_REQUEST',
+                        requestId: msg.requestId
+                    }, '*');
+                } else {
+                    console.warn('Aurion SSO logout: iframe sand not found in page');
+                }
+            }
+        };
+
+        // Écouter la réponse de l'iframe pour la renvoyer vers le BroadcastChannel (sso)
+        window.addEventListener('message', function(event) {
+            var msg = event.data;
+            
+            if (msg && msg.type === 'IFRAME_LOGOUT_DONE') {
+                console.log('Aurion SSO logout: iframe confirmed logout, notifying sso tab');
+                
+                channel.postMessage({
+                    type: 'RESPONSE_LOGOUT_REQUEST',
+                    requestId: msg.requestId
+                });
+            }
+        });
+    }
+
+})();
+        // END AURION SSO LOGOUT
 // --------------- END AURION CLEANUP EDITS -------------------------
 
 
