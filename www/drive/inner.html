@@ -25,6 +25,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
             --foreground-text: #1f2937;
             --border-color: rgba(128, 128, 128, 0.3);
             --bg-color: #ffffff;
+            --bg-color2: var(--bg-color);
         }
         @media (prefers-color-scheme: dark) {
             :root {
@@ -32,6 +33,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
                 --muted-hover-bg: #374151;
                 --foreground-text: #f9fafb;
                 --bg-color: #262626;
+                --bg-color2: #000000;
                 --primary-color: #fafafa;
             }
         }
@@ -59,7 +61,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
             border-right: 1px solid var(--border-color);
             box-sizing: border-box;
             flex-shrink: 0;
-            z-index: 9999;
+            z-index: 1000000;
         }
 
         .nav-rail-container {
@@ -165,9 +167,9 @@ SPDX-License-Identifier: AGPL-3.0-or-later
         }
         .custom-popover-card {
             width: 288px;
-            border-radius: 8px;
+            border-radius: 4px;
             border: 1px solid var(--border-color);
-            background-color: var(--bg-color);
+            background-color: var(--bg-color2);
             color: var(--foreground-text);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
             overflow: hidden;
@@ -189,22 +191,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
             transition: background-color 0.15s ease;
             box-sizing: border-box;
         }
-        .custom-account-btn:hover {
-            background-color: var(--muted-hover-bg);
-        }
-        .custom-check-badge {
-            position: absolute;
-            bottom: -2px;
-            right: -2px;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background-color: var(--primary-color);
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+
         .custom-truncate {
             overflow: hidden;
             text-overflow: ellipsis;
@@ -225,6 +212,8 @@ SPDX-License-Identifier: AGPL-3.0-or-later
         }
         .custom-signout-btn:hover {
             background-color: var(--muted-hover-bg);
+            color: var(--foreground-text) !important;
+            text-decoration: none !important;
         }
     </style>
 </head>
@@ -286,20 +275,18 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 
 
 <!-- Popover Menu -->
-<div id="user-popover-menu" style="display: none; position: absolute; left: 55.5px; bottom: 12px; z-index: 9999;">
+<div id="user-popover-menu" style="display: none; position: absolute; left: 55.5px; bottom: 12px; z-index: 1000000;">
     <div class="custom-popover-card" role="menu">
         <div class="custom-popover-scroll">
             <div draggable="false" style="position: relative;">
                 <button id="pop-account-btn" data-testid="account-option" data-account-id="" data-account-email="" role="menuitem" disabled="" class="custom-account-btn">
                     <div style="position: relative; flex-shrink: 0;">
-                        <div id="pop-avatar" class="user-avatar" style="width: 36px; height: 36px; font-size: 14px;" title=""></div>
-                        <div class="custom-check-badge">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 10px; height: 10px;" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
-                        </div>
+                        <div id="pop-avatar" class="user-avatar" style="width: 36px; height: 36px; font-size: 14px; " title=""></div>
+                        
                     </div>
                     <div style="min-width: 0; flex: 1; text-align: left;">
                         <div style="display: flex; align-items: center;">
-                            <span id="pop-email" class="custom-truncate" style="font-size: 14px; font-weight: 500;"></span>
+                            <span id="pop-email" class="custom-truncate" style="font-size: 14px; font-weight: 500; color: var(--foreground-text);"></span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 4px; margin-top: 2px;">
                             <span style="width: 6px; height: 6px; border-radius: 50%; background-color: #22c55e; flex-shrink: 0;"></span>
@@ -310,7 +297,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
             </div>
         </div>
         <div style="border-top: 1px solid var(--border-color);">
-            <a href="./logout" class="custom-signout-btn" role="menuitem">
+            <a class="custom-signout-btn" id="logout_link" target="_blank" role="menuitem">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;" aria-hidden="true"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg>Sign out
             </a>
         </div>

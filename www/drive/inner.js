@@ -365,7 +365,7 @@ define([
     main();
     //BEGIN AURION SCRIPT
 
-
+    const OAUTH_DOMAIN_WP = 'https://oauth.aurionmail.org';
     console.log("=== AURION SSO INNER SCRIPT ===");
     // 1. Fetch data from IndexedDB
     const request = indexedDB.open('AurionAuth');
@@ -382,8 +382,8 @@ define([
         const getColor = store.get('color');
 
         transaction.oncomplete = () => {
-            const email = getEmail.result || '';
-            const server = getServer.result || '';
+            const email = getEmail.result || 'unknown@local';
+            const server = getServer.result || 'mail@local';
             const color = getColor.result || '#2563eb';
             const initials = email ? email.substring(0, 2).toUpperCase() : '';
 
@@ -406,6 +406,8 @@ define([
             const popBtn = document.getElementById('pop-account-btn');
             popBtn.setAttribute('data-account-email', email);
             popBtn.setAttribute('data-account-id', `${email}@${server}`);
+            const logoutLink = document.getElementById('logout_link');
+            logoutLink.href = `${OAUTH_DOMAIN_WP}/oauth2/sessions/logout`;
         };
     };
 
