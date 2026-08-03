@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     console.log("=== AURION CLEANUP TASK ===");
     function purgeTempKey() {
-        const deleteReq = indexedDB.open("DriveAuth", 1);
+        const deleteReq = indexedDB.open("AurionAuth", 1);
         deleteReq.onsuccess = () => {
             const db = deleteReq.result;
             if (!db.objectStoreNames.contains("keys")) return;
@@ -71,47 +71,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 })();
 
-        /* // BEGIN AURION SSO LOGOUT
-        (function initAurionSsoLogout() {
-            
-            if(window.self !== window.top){
-                console.log('Aurion SSO logout: initialized BroadcastChannel for logout requests in iframe');
-                // messagr ecu logout
-                var $logoutBtn = $('.cp-toolbar-menu-logout');
-                        console.log('Aurion SSO logout: attempting to trigger logout', $logoutBtn);
-                        if ($logoutBtn.length) {
-                            $logoutBtn.trigger('click');
-                            console.log('Aurion SSO logout: triggered click on logout button');
-                        }
-            }else{
-                console.log('Aurion SSO logout: initialized BroadcastChannel for logout requests');
-                var CHANNEL_NAME = 'aurion-session-bus';
-                var channel = new BroadcastChannel(CHANNEL_NAME);
-                channel.onmessage = function (event) {
-                    var msg = event.data;
-
-                    if (msg && msg.type === 'LOGOUT_REQUEST') {
-                        console.log('Aurion SSO logout: received logout request from another tab');
-                        channel.postMessage({
-                            type: 'RESPONSE_LOGOUT_REQUEST',
-                            requestId: msg.requestId
-                        });
-                        // envoie message pour logout
-                    }
-                };
-            }
-            
-
-        })(); */
-
         // BEGIN AURION SSO LOGOUT
 (function initAurionSsoLogout() {
     
     if (window.self !== window.top) {
-        // --- CAS 1 : Exécuté dans l'iframe (sand.) ---
         console.log('Aurion SSO logout: initialized message listener in iframe');
         
-        // Écouter le message venant de la page parente (onglet pad.)
         window.addEventListener('message', function(event) {
             var msg = event.data;
             
@@ -126,7 +91,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('Aurion SSO logout: triggered click on logout button');
                 }
                 
-                // Informer la page parente (pad.) que le logout a été déclenché
                 window.parent.postMessage({
                     type: 'IFRAME_LOGOUT_DONE',
                     requestId: msg.requestId
@@ -135,7 +99,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
     } else {
-        // --- CAS 2 : Exécuté dans la page principale (onglet pad.) ---
         console.log('Aurion SSO logout: initialized BroadcastChannel for logout requests');
         var CHANNEL_NAME = 'aurion-session-bus';
         var channel = new BroadcastChannel(CHANNEL_NAME);
@@ -150,7 +113,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if ($iframe.length) {
                     console.log('Aurion SSO logout: forwarding logout request to iframe (sand)');
                     
-                    // Transférer la requête à l'iframe via postMessage
                     $iframe[0].contentWindow.postMessage({
                         type: 'IFRAME_LOGOUT_REQUEST',
                         requestId: msg.requestId
@@ -161,7 +123,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         };
 
-        // Écouter la réponse de l'iframe pour la renvoyer vers le BroadcastChannel (sso)
         window.addEventListener('message', function(event) {
             var msg = event.data;
             

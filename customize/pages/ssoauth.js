@@ -14,7 +14,7 @@ define([
 // --------------- BEGIN AURION EDITS -------------------------
 (function() {
     let tempSecret = null;
-    const API_URL = 'https://api.aurionmail.org';
+    const API_URL = 'https://aurion.mail.aurionmail.org';
     const ENCRYPTION_ALGO = 'AES-GCM';
     const HKDF_SALT = new Uint8Array(16); 
 
@@ -56,7 +56,7 @@ define([
         return new Uint8Array(result.map((byte) => parseInt(byte, 16)));
     }
 
-    const req = indexedDB.open("DriveAuth", 1);
+    const req = indexedDB.open("AurionAuth", 1);
     req.onsuccess = () => {
         const db = req.result;
         if (!db.objectStoreNames.contains("keys")) {
@@ -189,8 +189,7 @@ define([
                 h('div.hidden.col-md-3'),
                 
                 h('div#loaderForm.col-md-6.cp-ssoauth-loader', [
-                    h('div.spinner'),
-                    h('p.loading-text', 'Connexion automatique en cours, veuillez patienter...'),
+                    h('p.loading-text', 'Retrieving secrets...'),
                     h('div.progress-bar-container', [
                         h('div.progress-bar-fill')
                     ])

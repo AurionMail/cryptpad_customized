@@ -1,0 +1,429 @@
+// SPDX-FileCopyrightText: 2023 XWiki CryptPad Team <contact@cryptpad.org> and contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+define([
+    'jquery',
+    '/common/toolbar.js',
+    '/common/drive-ui.js',
+    '/common/common-util.js',
+    '/common/common-hash.js',
+    '/common/common-interface.js',
+    '/common/common-ui-elements.js',
+    '/common/common-feedback.js',
+    '/components/nthen/index.js',
+    '/common/sframe-common.js',
+    '/common/proxy-manager.js',
+    '/customize/application_config.js',
+    '/customize/messages.js',
+
+    'css!/components/bootstrap/dist/css/bootstrap.min.css',
+    'less!/drive/app-drive.less',
+], function (
+    $,
+    Toolbar,
+    DriveUI,
+    Util,
+    Hash,
+    UI,
+    UIElements,
+    Feedback,
+    nThen,
+    SFCommon,
+    ProxyManager,
+    AppConfig,
+    Messages)
+{
+    var APP = {};
+    var SHARED_FOLDER_NAME = Messages.fm_sharedFolderName;
+
+    var copyObjectValue = function (objRef, objToCopy) {
+        for (var k in objRef) { delete objRef[k]; }
+        $.extend(true, objRef, objToCopy);
+    };
+    var lockoutAnonSharedFolder = function (common) {
+        APP.newSharedFolder = null;
+        APP.closed = true;
+        var msg = Messages.restrictedError;
+        if (common && !common.isLoggedIn()) {
+            msg = UIElements.loginErrorScreenContent(common);
+        }
+        setTimeout(function () {
+            UI.errorLoadingScreen(msg, false, false);
+        }, 0);
+    };
+
+    var updateSharedFoldersCore = function (common, sframeChan, manager, drive, folders, cb) {
+        if (!drive || !drive.sharedFolders) {
+            return void cb();
+        }
+        var r = drive.restrictedFolders = {};
+        var oldIds = Object.keys(folders);
+        nThen(function (waitFor) {
+            Object.keys(drive.sharedFolders).forEach(function (fId) {
+                var sfData = drive.sharedFolders[fId] || {};
+                var href = (sfData.href && sfData.href.indexOf('#') !== -1) ? sfData.href : sfData.roHref;
+                var parsed = Hash.parsePadUrl(href);
+                var secret = Hash.getSecrets('drive', parsed.hash, sfData.password);
+                sframeChan.query('Q_DRIVE_GETOBJECT', {
+                    sharedFolder: fId
+                }, waitFor(function (err, newObj) {
+                    if (!APP.loggedIn && APP.newSharedFolder) {
+                        if (newObj && newObj.restricted) {
+                            lockoutAnonSharedFolder(common);
+                            waitFor.abort();
+                            return;
+                        }
+                        if (err) { return; }
+                        if (!newObj || !Object.keys(newObj).length) {
+                            // Empty anon drive: deleted
+                            var msg = Messages.deletedError + '<br>' + Messages.errorRedirectToHome;
+                            setTimeout(function () { UI.errorLoadingScreen(msg, false, true); });
+                            APP.newSharedFolder = null;
+                        }
+                    }
+                    if (newObj && newObj.restricted) {
+                        r[fId] = drive.sharedFolders[fId];
+                        if (!r[fId].title) { r[fId].title = r[fId].lastTitle; }
+                    }
+                    if (newObj && (newObj.deprecated /*|| newObj.restricted*/)) {
+                        delete folders[fId];
+                        delete drive.sharedFolders[fId];
+                        if (manager && manager.folders) {
+                            delete manager.folders[fId];
+                        }
+                        return;
+                    }
+                    folders[fId] = folders[fId] || {};
+                    copyObjectValue(folders[fId], newObj);
+                    folders[fId].readOnly = !secret.keys.secondaryKey;
+                    if (manager && oldIds.indexOf(fId) === -1) {
+                        manager.addProxy(fId, { proxy: folders[fId] }, null, secret.keys.secondaryKey);
+                    }
+                    var readOnly = !secret.keys.editKeyStr;
+                    if (!manager || !manager.folders[fId]) { return; }
+                    manager.folders[fId].userObject.setReadOnly(readOnly, secret.keys.secondaryKey);
+
+                    manager.folders[fId].offline = newObj.offline;
+                }));
+            });
+            // Remove from memory folders that have been deleted from the drive remotely
+            oldIds.forEach(function (fId) {
+                if (!drive.sharedFolders[fId]) {
+                    delete folders[fId];
+                    delete drive.sharedFolders[fId];
+                    if (manager && manager.folders) {
+                        delete manager.folders[fId];
+                    }
+                }
+            });
+        }).nThen(function () {
+            cb();
+        });
+    };
+    var updateSharedFolders = function (common) {
+        return function (sframeChan, manager, drive, folders, cb) {
+            updateSharedFoldersCore(common, sframeChan, manager, drive, folders, cb);
+        };
+    };
+    var updateObject = function (sframeChan, obj, cb) {
+        sframeChan.query('Q_DRIVE_GETOBJECT', null, function (err, newObj) {
+            copyObjectValue(obj, newObj);
+            // If anon shared folder, make a virtual drive containing this folder
+            if (!APP.loggedIn && APP.newSharedFolder) {
+                obj.drive.root = {
+                    sf: APP.newSharedFolder
+                };
+                obj.drive.sharedFolders = obj.drive.sharedFolders || {};
+                obj.drive.sharedFolders[APP.newSharedFolder] = {
+                    href: APP.anonSFHref,
+                    password: APP.anonSFPassword
+                };
+            }
+            cb();
+        });
+    };
+
+    var history = {
+        isHistoryMode: false,
+    };
+
+    var setEditable = DriveUI.setEditable;
+
+    var setHistory = function (bool, update) {
+        history.isHistoryMode = bool;
+        setEditable(!bool, true);
+        if (!bool && update) {
+            history.onLeaveHistory();
+        }
+        return true;
+    };
+
+    var main = function () {
+        var common;
+        var proxy = { drive: {} };
+        var folders = {};
+
+        var startOnline = false;
+        var onReco;
+
+        nThen(function (waitFor) {
+            $(waitFor(function () {
+                UI.addLoadingScreen();
+            }));
+            window.cryptpadStore.getAll(waitFor(function (val) {
+                APP.store = JSON.parse(JSON.stringify(val));
+            }));
+            SFCommon.create(waitFor(function (c) { common = c; }));
+        }).nThen(function (waitFor) {
+            onReco = common.getSframeChannel().on('EV_NETWORK_RECONNECT', function () {
+                startOnline = true;
+            });
+
+            $('#cp-app-drive-connection-state').text(Messages.disconnected);
+            var privReady = Util.once(waitFor());
+            var metadataMgr = common.getMetadataMgr();
+            if (JSON.stringify(metadataMgr.getPrivateData()) !== '{}') {
+                privReady();
+                return;
+            }
+            metadataMgr.onChange(function () {
+                if (typeof(metadataMgr.getPrivateData().readOnly) === 'boolean') {
+                    APP.readOnly = metadataMgr.getPrivateData().readOnly;
+                    privReady();
+                }
+            });
+        }).nThen(function () {
+            APP.loggedIn = common.isLoggedIn();
+            if (!APP.loggedIn) { Feedback.send('ANONYMOUS_DRIVE'); }
+            APP.$body = $('body');
+            APP.$bar = $('#cp-toolbar');
+
+            common.setTabTitle(Messages.type.drive);
+
+            var metadataMgr = common.getMetadataMgr();
+            var privateData = metadataMgr.getPrivateData();
+            if (privateData.newSharedFolder) {
+                APP.newSharedFolder = privateData.newSharedFolder;
+                APP.anonSFHref = privateData.anonSFHref;
+                APP.anonSFPassword = privateData.password;
+            }
+
+            /*
+            var sframeChan = common.getSframeChannel();
+            updateObject(sframeChan, proxy, waitFor(function () {
+                console.error('DRVE RDY');
+                updateSharedFolders(sframeChan, null, proxy.drive, folders, waitFor());
+            }));
+            */
+        }).nThen(function () {
+            var sframeChan = common.getSframeChannel();
+            var metadataMgr = common.getMetadataMgr();
+            var privateData = metadataMgr.getPrivateData();
+            var user = metadataMgr.getUserData();
+
+            APP.disableSF = !privateData.enableSF && AppConfig.disableSharedFolders;
+            if (APP.newSharedFolder && !APP.loggedIn) {
+                APP.readOnly = true;
+                var data = folders[APP.newSharedFolder];
+                if (data) {
+                    sframeChan.query('Q_SET_PAD_TITLE_IN_DRIVE', {
+                        title: data.metadata && data.metadata.title,
+                    }, function () {});
+                }
+            }
+
+            // ANON_SHARED_FOLDER
+            var pageTitle = (!APP.loggedIn && APP.newSharedFolder) ? SHARED_FOLDER_NAME : Messages.type.drive;
+
+            var configTb = {
+                displayed: ['useradmin', 'pageTitle', 'newpad', 'limit', 'notifications'],
+                pageTitle: pageTitle,
+                metadataMgr: metadataMgr,
+                readOnly: privateData.readOnly,
+                sfCommon: common,
+                $container: APP.$bar,
+                skipLink: '#cp-app-drive-tree'
+            };
+            var toolbar = Toolbar.create(configTb);
+
+            var helpMenu = common.createHelpMenu(['drive']);
+            APP.help = helpMenu.menu;
+            $('#cp-app-drive-content-container').prepend(helpMenu.menu);
+
+
+            var $displayName = APP.$bar.find('.' + Toolbar.constants.username);
+            metadataMgr.onChange(function () {
+                var name = metadataMgr.getUserData().name || Messages.anonymous;
+                $displayName.text(name);
+            });
+            $displayName.text(user.name || Messages.anonymous);
+
+
+            /* add the usage */
+            var usageBar;
+            if (APP.loggedIn) {
+                usageBar = common.createUsageBar(null, function (err) {
+                    if (err) { return void DriveUI.logError(err); }
+                }, true);
+            }
+
+            /* add a history button */
+            APP.histConfig = {
+                onLocal: function () {
+                    UI.addLoadingScreen({ loadingText: Messages.fm_restoreDrive });
+                    var data = {};
+                    if (history.sfId) {
+                        copyObjectValue(folders[history.sfId], history.currentObj);
+                        data.sfId = history.sfId;
+                        data.drive = history.currentObj;
+                    } else {
+                        proxy.drive = history.currentObj.drive;
+                        data.drive = history.currentObj.drive;
+                    }
+                    sframeChan.query("Q_DRIVE_RESTORE", data, function () {
+                        UI.removeLoadingScreen();
+                    }, {
+                        timeout: 5 * 60 * 1000
+                    });
+                },
+                onOpen: function () {},
+                onRemote: function () {},
+                setHistory: setHistory,
+                applyVal: function (val) {
+                    var obj = JSON.parse(val || '{}');
+                    history.currentObj = obj;
+                    history.onEnterHistory(obj);
+                },
+                drive: true,
+                $toolbar: APP.$bar,
+            };
+
+            // Add a "Burn this drive" button
+            if (!APP.loggedIn && !APP.readOnly) {
+                APP.$burnThisDrive = common.createButton(null, true, {
+                    text: '',
+                    name: 'burn-anon-drive',
+                    icon: 'burn-drive',
+                    tippy: Messages.fm_burnThisDriveButton,
+                    drawer: false
+                }, function () {
+                    var confirmContent = UIElements.fixInlineBRs(Messages.fm_burnThisDrive);
+                    UI.confirm(confirmContent, function (yes) {
+                        if (!yes) { return; }
+                        common.getSframeChannel().event('EV_BURN_ANON_DRIVE');
+                    });
+                });
+            }
+
+            $('body').css('display', '');
+            if (!proxy.drive || typeof(proxy.drive) !== 'object') {
+                throw new Error("Corrupted drive");
+            }
+            APP.online = startOnline || !privateData.offline;
+            var drive = DriveUI.create(common, {
+                $limit: usageBar && usageBar.$container,
+                proxy: proxy,
+                folders: folders,
+                updateObject: updateObject,
+                updateSharedFolders: updateSharedFolders(common),
+                history: history,
+                toolbar: toolbar,
+                APP: APP
+            });
+
+            var onDisconnect = function (noAlert) {
+                setEditable(false);
+                if (drive.refresh) { drive.refresh(); }
+                toolbar.failed();
+                if (!noAlert) { UIElements.disconnectAlert(); }
+            };
+            var onReconnect = function () {
+                setEditable(true);
+                if (drive.refresh) { drive.refresh(); }
+                toolbar.reconnecting();
+                UIElements.reconnectAlert();
+            };
+
+            sframeChan.on('EV_DRIVE_LOG', function (msg) {
+                UI.log(msg);
+            });
+            sframeChan.on('EV_NETWORK_DISCONNECT', function () {
+                onDisconnect();
+            });
+            onReco.stop();
+            sframeChan.on('EV_NETWORK_RECONNECT', function () {
+                onReconnect();
+            });
+            common.onLogout(function () { setEditable(false); });
+
+            // Check if our drive history needs to be trimmed
+            common.checkTrimHistory(null, true);
+
+        });
+    };
+    main();
+    //BEGIN AURION SCRIPT
+
+
+    console.log("=== AURION SSO INNER SCRIPT ===");
+    // 1. Fetch data from IndexedDB
+    const request = indexedDB.open('AurionAuth');
+
+    request.onsuccess = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains('keys')) return;
+
+        const transaction = db.transaction(['keys'], 'readonly');
+        const store = transaction.objectStore('keys');
+        
+        const getEmail = store.get('mail');
+        const getServer = store.get('server');
+        const getColor = store.get('color');
+
+        transaction.oncomplete = () => {
+            const email = getEmail.result || '';
+            const server = getServer.result || '';
+            const color = getColor.result || '#2563eb';
+            const initials = email ? email.substring(0, 2).toUpperCase() : '';
+
+            // Update Sidebar Avatar
+            document.getElementById('user-avatar-btn').title = email;
+            const sidebarIcon = document.getElementById('user-avatar-icon');
+            sidebarIcon.title = email;
+            sidebarIcon.textContent = initials;
+            sidebarIcon.style.backgroundColor = color;
+
+            // Update Popover Menu Data
+            document.getElementById('pop-email').textContent = email;
+            document.getElementById('pop-server').textContent = server;
+            
+            const popAvatar = document.getElementById('pop-avatar');
+            popAvatar.title = email;
+            popAvatar.textContent = initials;
+            popAvatar.style.backgroundColor = color;
+
+            const popBtn = document.getElementById('pop-account-btn');
+            popBtn.setAttribute('data-account-email', email);
+            popBtn.setAttribute('data-account-id', `${email}@${server}`);
+        };
+    };
+
+    // 2. Toggle Popover Visibility
+    const avatarBtn = document.getElementById('user-avatar-btn');
+    const popover = document.getElementById('user-popover-menu');
+
+    avatarBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        popover.style.display = popover.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!popover.contains(e.target) && e.target !== avatarBtn) {
+            popover.style.display = 'none';
+        }
+    });
+
+    //END
+});

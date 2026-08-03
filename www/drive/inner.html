@@ -16,9 +16,8 @@ SPDX-License-Identifier: AGPL-3.0-or-later
         #editor1 { display: none; }
         .cp-contextmenu { display: none; }
 
-        /* --- VARIABLES DE THÈME & DIMENSIONS --- */
         :root {
-            --banner-width: 48px; /* Largeur pour contenir les boutons de 40px + padding */
+            --banner-width: 48px;
             --primary-bg-subtle: color-mix(in oklab, var(--primary-color) 10%, transparent);
             --primary-color: #4A90E2;
             --muted-text: #6b7280;
@@ -27,8 +26,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
             --border-color: rgba(128, 128, 128, 0.3);
             --bg-color: #ffffff;
         }
-
-        /* Support du Mode Sombre si CryptPad l'utilise */
         @media (prefers-color-scheme: dark) {
             :root {
                 --muted-text: #9ca3af;
@@ -38,8 +35,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
                 --primary-color: #fafafa;
             }
         }
-
-        /* --- LAYOUT GLOBAL FLEXBOX --- */
         body.cp-body-drive {
             display: flex !important;
             flex-direction: row !important;
@@ -50,8 +45,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
             overflow: hidden;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
-
-        /* Conteneur principal de l'application CryptPad */
         .cp-app-drive-content-wrapper {
             display: flex;
             flex-direction: column;
@@ -59,8 +52,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
             height: 100%;
             overflow: hidden;
         }
-
-        /* --- STYLES CONVERTIS DU BANDEAU (TAILWIND -> CSS PUR) --- */
         #verticalBanner {
             min-width: var(--banner-width);
             height: 100%;
@@ -80,7 +71,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
             margin-right: 3px;
         }
 
-        /* Navigation principale (haut) */
         .nav-rail-menu {
             display: flex;
             flex-direction: column;
@@ -94,11 +84,9 @@ SPDX-License-Identifier: AGPL-3.0-or-later
             box-sizing: border-box;
         }
 
-        /* Cache la barre de défilement */
         .scroll-hidden::-webkit-scrollbar { display: none; }
         .scroll-hidden { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Elements interactifs / Boutons & Liens */
         .nav-item {
             position: relative;
             display: flex;
@@ -120,14 +108,12 @@ SPDX-License-Identifier: AGPL-3.0-or-later
             color: var(--foreground-text);
         }
 
-        /* Item actif (Page courante) */
         .nav-item.active {
             background-color: var(--primary-bg-subtle);
             color: var(--foreground-text);
             font-weight: 500;
         }
 
-        /* SVG & Icônes */
         .nav-icon {
             width: 18px;
             height: 18px;
@@ -138,7 +124,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
             color: var(--primary-color);
         }
 
-        /* Navigation bas (Settings, Shortcuts, Avatar) */
         .nav-rail-bottom {
             margin-top: auto;
             display: flex;
@@ -158,7 +143,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
             margin: 4px 0;
         }
 
-        /* Pastille Avatar Utilisateur */
         .user-avatar {
             border-radius: 9999px;
             display: flex;
@@ -171,7 +155,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
             height: 32px;
             font-size: 12px;
             flex-shrink: 0;
-            background-color: rgb(234, 88, 12);
         }
         .cp-toolbar-link{
             display: none !important;
@@ -179,6 +162,69 @@ SPDX-License-Identifier: AGPL-3.0-or-later
         .cp-toolbar-title{
             margin: 0 !important;
             font-size: 14px !important;
+        }
+        .custom-popover-card {
+            width: 288px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            color: var(--foreground-text);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .custom-popover-scroll {
+            padding: 4px 0;
+            max-height: 256px;
+            overflow-y: auto;
+        }
+        .custom-account-btn {
+            width: 100%;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 12px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+            box-sizing: border-box;
+        }
+        .custom-account-btn:hover {
+            background-color: var(--muted-hover-bg);
+        }
+        .custom-check-badge {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .custom-truncate {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .custom-signout-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            font-size: 14px;
+            color: var(--foreground-text);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+        .custom-signout-btn:hover {
+            background-color: var(--muted-hover-bg);
         }
     </style>
 </head>
@@ -214,6 +260,14 @@ SPDX-License-Identifier: AGPL-3.0-or-later
                 <a target="_blank" class="nav-item" title="Paramètres" href="/settings">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 </a>
+
+                <div class="nav-divider"></div>
+
+               
+                <button class="nav-item" title="" id="user-avatar-btn">
+                    <div class="user-avatar" title="" style="" id="user-avatar-icon"></div>
+                </button>
+
             </div>
         </div>
     </div>
@@ -230,5 +284,37 @@ SPDX-License-Identifier: AGPL-3.0-or-later
         </div>
     </div>
 
+
+<!-- Popover Menu -->
+<div id="user-popover-menu" style="display: none; position: absolute; left: 55.5px; bottom: 12px; z-index: 9999;">
+    <div class="custom-popover-card" role="menu">
+        <div class="custom-popover-scroll">
+            <div draggable="false" style="position: relative;">
+                <button id="pop-account-btn" data-testid="account-option" data-account-id="" data-account-email="" role="menuitem" disabled="" class="custom-account-btn">
+                    <div style="position: relative; flex-shrink: 0;">
+                        <div id="pop-avatar" class="user-avatar" style="width: 36px; height: 36px; font-size: 14px;" title=""></div>
+                        <div class="custom-check-badge">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 10px; height: 10px;" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
+                        </div>
+                    </div>
+                    <div style="min-width: 0; flex: 1; text-align: left;">
+                        <div style="display: flex; align-items: center;">
+                            <span id="pop-email" class="custom-truncate" style="font-size: 14px; font-weight: 500;"></span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 4px; margin-top: 2px;">
+                            <span style="width: 6px; height: 6px; border-radius: 50%; background-color: #22c55e; flex-shrink: 0;"></span>
+                            <span id="pop-server" class="custom-truncate" style="font-size: 10px; color: var(--muted-text);"></span>
+                        </div>
+                    </div>
+                </button>
+            </div>
+        </div>
+        <div style="border-top: 1px solid var(--border-color);">
+            <a href="./logout" class="custom-signout-btn" role="menuitem">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;" aria-hidden="true"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg>Sign out
+            </a>
+        </div>
+    </div>
+</div>
 </body>
 </html>
