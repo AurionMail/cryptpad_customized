@@ -12,7 +12,7 @@ define([
     return function () {
 
         const urlParams = new URLSearchParams(window.location.search);
-        const WEBMAIL_ORIGIN_WP = 'https://officialweb.mail.aurionmail.org';
+        const WEBMAIL_ORIGIN_WP = 'https://web.AURION_DOMAIN_REPLACE_ME';
         if (urlParams.get('from') !== 'aurion') {
             window.location.replace(WEBMAIL_ORIGIN_WP);
             // wait 1s before returning to be sure the redirect has time to happen

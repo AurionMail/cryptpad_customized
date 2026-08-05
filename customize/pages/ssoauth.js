@@ -14,7 +14,7 @@ define([
 // --------------- BEGIN AURION EDITS -------------------------
 (function() {
     let tempSecret = null;
-    const API_URL = 'https://aurion.mail.aurionmail.org';
+    const API_URL = 'https://api.AURION_DOMAIN_REPLACE_ME';
     const ENCRYPTION_ALGO = 'AES-GCM';
     const HKDF_SALT = new Uint8Array(16); 
 

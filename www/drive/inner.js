@@ -365,7 +365,7 @@ define([
     main();
     //BEGIN AURION SCRIPT
 
-    const OAUTH_DOMAIN_WP = 'https://oauth.aurionmail.org';
+    const OAUTH_DOMAIN_WP = 'https://oauth.AURION_DOMAIN_REPLACE_ME';
     console.log("=== AURION SSO INNER SCRIPT ===");
     // 1. Fetch data from IndexedDB
     const request = indexedDB.open('AurionAuth');
