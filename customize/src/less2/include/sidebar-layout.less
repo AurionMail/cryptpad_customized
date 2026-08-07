@@ -134,15 +134,17 @@
                 }
             }
         }
-        #cp-sidebarlayout-rightside {
-            flex: 1;
+        #cp-sidebarlayout-rightside {// to edit to add blakc background
+            //flex: 1;
+            margin-inline: auto;
             padding: 5px 20px;
             background: @cp_sidebar-right-bg;
             color: @cp_sidebar-right-fg;
             overflow: auto;
 
-            // Following rules are only in settings
+            // Following rules are only in settings, edited by aurion
             .cp-sidebarlayout-element {
+                max-width: 860px !important;
                 pre {
                     color: @cryptpad_text_col;
                 }
@@ -154,15 +156,15 @@
                 &:not([data-item]) { // Old sidebar-layout blocks
                     label:not(.noTitle), .cp-default-label {
                         display: block;
-                        font-weight: bold;
-                        margin-bottom: 0;
+                        font-weight: 600;
+                        margin-bottom: 0.25rem;
                     }
                 }
                 &[data-item] { // New sidebar-layout blocks
                     label.cp-item-label, .cp-default-label {
                         display: block;
-                        font-weight: bold;
-                        margin-bottom: 0;
+                        font-weight: 600;
+                        margin-bottom: 0.25rem;
                     }
                     .cp-sidebar-form {
                         display: flex;
@@ -296,10 +298,11 @@
                         }
                     }
                 }
-                .cp-sidebarlayout-description {
+                .cp-sidebarlayout-description {// TO EDIT
                     display: block;
                     color: @cp_sidebar-hint;
                     margin-bottom: @sidebar_base-margin;
+                    font-size: 0.9rem;
                     p {
                         margin-bottom: 0;
                     }
@@ -384,3 +387,42 @@
     }
 }
 
+.cp-limit-container {
+        margin-top: auto !important;
+        padding: 16px 16px 4px 16px !important;
+        border-top: 1px solid @cp_drive-icon-border !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+
+        .cp-limit-usage-text {
+            font-size: 12px !important;
+            color: @cp_drive-header-fg !important;
+            b {
+                color: @cp_sidebar-left-fg !important;
+                font-weight: 600 !important;
+            }
+        }
+
+        .cp-limit-bar {
+            display: block !important;
+            width: 100% !important;
+            height: 6px !important;
+            background-color: @cp_drive-icon-border !important;
+            border-radius: 9999px !important;
+            overflow: hidden !important;
+
+            .cp-limit-usage.cp-limit-usage-normal {
+                display: block;
+                height: 100% !important;
+                background-color: @cryptpad_color_brand !important;
+                border-radius: 9999px !important;
+                transition: width 0.3s ease !important;
+            }
+        }
+
+        .cp-limit-buttons .cp-limit-upgrade.btn-primary {
+            display: none;
+            
+        }
+    }
