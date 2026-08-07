@@ -8,3 +8,4 @@ The folowwing have been taken with default blue theme activated and Dark theme e
 ![Drive](./docs/screenshots/drive.png)
 ![Search](./docs/screenshots/search.png)
 ![Settings](./docs/screenshots/settings.png)
+![Settings](./docs/screenshots/settings_new.png)
