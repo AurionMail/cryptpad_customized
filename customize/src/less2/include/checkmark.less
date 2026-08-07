@@ -11,7 +11,7 @@
 .checkmark_vars(
     @size: 28px
 ) {
-    @checkmark-size: @size;
+    @checkmark-size: 28px;
     @checkmark-width: round(@size / 8);
     @checkmark-dim1: round(@size / 3);
     @checkmark-dim2: round(2 * @size / 3);
@@ -85,6 +85,11 @@
                     transform: translateX(calc(var(--checkmark-size) * 0.8));
                 }
             }
+            &:not(:checked) ~ .cp-checkmark-mark {
+                &:after {
+                    background-color: @cp_checkmark-back0-active;
+                }
+            }
             &:disabled ~ .cp-checkmark-mark {
                 background-color: @cp_checkmark-disabled;
                 opacity: 0.6;
@@ -125,7 +130,7 @@
                 border-radius: 50%;
                 position: absolute;
                 left: 1px;
-                top: 1px;
+                //top: 1px;
                 box-sizing: border-box;
                 transition: transform 0.25s ease, background-color 0.25s ease;
             }
