@@ -427,5 +427,65 @@ define([
         }
     });
 
+    //---------------------- LogoutAll Function ---------------------- 
+(function initAurionSsoLogoutAll() {
+    
+    if (window.self !== window.top) {
+        console.log('Aurion SSO logoutAll: initialized for logout requests');
+
+        const req = indexedDB.open("AurionAuth");
+        req.onsuccess = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('keys')) return;
+            const transaction = db.transaction("keys", "readonly");
+            const store = transaction.objectStore("keys");
+            
+            const logOutAsked = store.get('logoutAll');
+
+            transaction.oncomplete = () => {
+                if (logOutAsked.result) {
+                    console.log('Aurion SSO logout: received logout request from another tab (sso)');
+                    triggerLogoutWhenReady();
+                }
+            };
+        };
+    }
+
+    function triggerLogoutWhenReady() {
+        const selector = '.cp-toolbar-menu-logout-everywhere';
+        
+        const existingButton = $(selector);
+        if (existingButton.length) {
+            console.log('Aurion SSO logout: button found immediately, triggering click');
+            existingButton.trigger('click');
+            return;
+        }
+
+        console.log('Aurion SSO logoutAll: waiting for LogoutAllButton to be inserted into the DOM...');
+
+        const observer = new MutationObserver((mutations, obs) => {
+            const button = $(selector);
+            if (button.length) {
+                console.log('Aurion SSO logout: button detected by observer, triggering click');
+                button.trigger('click');
+                obs.disconnect(); // On arrête d'écouter une fois trouvé
+            }
+        });
+
+        observer.observe(document.body || document.documentElement, {
+            childList: true,
+            subtree: true
+        });
+    }
+
+})();
+
+    // LogoutAll button click handler
+    // if logoutAll is trigered from cryptpad, we don't need to open a new page with the 
+    // indexedDB update, we can just trigger the function
+    document.getElementById('logoutAllBtn').addEventListener('click', (e) => {
+        e.preventDefault();
+        triggerLogoutWhenReady();
+    });
     //END
 });
