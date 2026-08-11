@@ -428,29 +428,6 @@ define([
     });
 
     //---------------------- LogoutAll Function ---------------------- 
-(function initAurionSsoLogoutAll() {
-    
-    if (window.self !== window.top) {
-        console.log('Aurion SSO logoutAll: initialized for logout requests');
-
-        const req = indexedDB.open("AurionAuth");
-        req.onsuccess = (e) => {
-            const db = e.target.result;
-            if (!db.objectStoreNames.contains('keys')) return;
-            const transaction = db.transaction("keys", "readonly");
-            const store = transaction.objectStore("keys");
-            
-            const logOutAsked = store.get('logoutAll');
-
-            transaction.oncomplete = () => {
-                if (logOutAsked.result) {
-                    console.log('Aurion SSO logout: received logout request from another tab (sso)');
-                    triggerLogoutWhenReady();
-                }
-            };
-        };
-    }
-
     function triggerLogoutWhenReady() {
         const selector = '.cp-toolbar-menu-logout-everywhere';
         
@@ -478,6 +455,28 @@ define([
         });
     }
 
+(function initAurionSsoLogoutAll() {
+    
+    if (window.self !== window.top) {
+        console.log('Aurion SSO logoutAll: initialized for logout requests');
+
+        const req = indexedDB.open("AurionAuth");
+        req.onsuccess = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('keys')) return;
+            const transaction = db.transaction("keys", "readonly");
+            const store = transaction.objectStore("keys");
+            
+            const logOutAsked = store.get('logoutAll');
+
+            transaction.oncomplete = () => {
+                if (logOutAsked.result) {
+                    console.log('Aurion SSO logout: received logout request from another tab (sso)');
+                    triggerLogoutWhenReady();
+                }
+            };
+        };
+    }
 })();
 
     // LogoutAll button click handler
