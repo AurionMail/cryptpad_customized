@@ -2352,7 +2352,7 @@ define([
                     // AURION : removed confirmation modal
                         Common.getSframeChannel().query('Q_LOGOUT_EVERYWHERE', null, function () {
                             //BEGIN AURION EDITS
-                            Common.gotoURL('https://sso.DOMAIN_TO_REPLACE/logout/all');
+                            Common.gotoURL('https://sso.AURION_DOMAIN_REPLACE_ME/logout/all');
                             // END AURION EDITS
                         });
                 },
