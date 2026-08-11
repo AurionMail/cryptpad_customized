@@ -470,7 +470,7 @@ define([
             const logOutAsked = store.get('logoutAll');
 
             transaction.oncomplete = () => {
-                if (logOutAsked.result) {
+                if (logOutAsked.result && logOutAsked.result != false) {
                     console.log('Aurion SSO logout: received logout request from another tab (sso)');
                     triggerLogoutWhenReady();
                 }
