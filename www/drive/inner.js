@@ -464,13 +464,14 @@ define([
         req.onsuccess = (e) => {
             const db = e.target.result;
             if (!db.objectStoreNames.contains('keys')) return;
-            const transaction = db.transaction("keys", "readonly");
+            const transaction = db.transaction("keys", "readwrite");
             const store = transaction.objectStore("keys");
             
             const logOutAsked = store.get('logoutAll');
 
-            transaction.oncomplete = () => {
-                if (logOutAsked.result && logOutAsked.result != false) {
+            logOutAsked.onsuccess = () => {
+                if (logOutAsked.result && logOutAsked.result !== false) {
+                    store.delete('logoutAll');
                     console.log('Aurion SSO logout: received logout request from another tab (sso)');
                     triggerLogoutWhenReady();
                 }
