@@ -487,5 +487,14 @@ define([
         e.preventDefault();
         triggerLogoutWhenReady();
     });
+
+//----------------------Redirect to change password page if needed----------------------
+    //1. check in localstorage for key "changePasswordRequired" if it is set to true, redirect to the change password page
+    const changePasswordRequired = localStorage.getItem('changePasswordRequired');
+    if (changePasswordRequired === 'true') {
+        localStorage.removeItem('changePasswordRequired');
+        console.log('Aurion SSO: Redirecting to change password page');
+        window.top.location.href = `https://pad.AURION_DOMAIN_REPLACE_ME/settings/#security`;
+    }
     //END
 });
