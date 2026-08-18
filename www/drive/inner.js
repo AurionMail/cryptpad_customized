@@ -480,6 +480,31 @@ define([
     }
 })();
 
+(function initAurionChangePassword() {
+    
+    if (window.self !== window.top) {
+        console.log('Aurion SSO change password: initialized');
+
+        const req = indexedDB.open("AurionAuth");
+        req.onsuccess = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('keys')) return;
+            const transaction = db.transaction("keys", "readwrite");
+            const store = transaction.objectStore("keys");
+            
+            const changePasswordRequiredAsked = store.get('changePasswordRequired');
+
+            changePasswordRequiredAsked.onsuccess = () => {
+                if (changePasswordRequiredAsked.result && changePasswordRequiredAsked.result !== false) {
+                    store.delete('changePasswordRequired');
+                    console.log('Aurion SSO: Redirecting to change password page');
+                    window.top.location.href = `https://pad.AURION_DOMAIN_REPLACE_ME/settings/#security`;
+                }
+            };
+        };
+    }
+})();
+
     // LogoutAll button click handler
     // if logoutAll is trigered from cryptpad, we don't need to open a new page with the 
     // indexedDB update, we can just trigger the function
@@ -487,14 +512,5 @@ define([
         e.preventDefault();
         triggerLogoutWhenReady();
     });
-
-//----------------------Redirect to change password page if needed----------------------
-    //1. check in localstorage for key "changePasswordRequired" if it is set to true, redirect to the change password page
-    const changePasswordRequired = localStorage.getItem('changePasswordRequired');
-    if (changePasswordRequired === 'true') {
-        localStorage.removeItem('changePasswordRequired');
-        console.log('Aurion SSO: Redirecting to change password page');
-        window.top.location.href = `https://pad.AURION_DOMAIN_REPLACE_ME/settings/#security`;
-    }
     //END
 });
