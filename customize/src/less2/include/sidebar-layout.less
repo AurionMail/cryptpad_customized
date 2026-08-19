@@ -144,6 +144,9 @@
 
             // Following rules are only in settings, edited by aurion
             .cp-sidebarlayout-element {
+                &:is(.cp-settings-change-password, .cp-settings-mfa, .cp-settings-logout-everywhere) {
+                    display: none;
+                }
                 max-width: 860px !important;
                 pre {
                     color: @cryptpad_text_col;
