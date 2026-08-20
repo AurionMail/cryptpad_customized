@@ -121,7 +121,7 @@
     }
 
     .cp-toolbar-chat-drawer {
-        border-radius: @variables_radius;
+        //border-radius: @variables_radius;
         background-color: @toolbar-bg-color;
         background-color: var(--toolbar-bg-color);
         font: @colortheme_app-font-size @colortheme_font;
@@ -401,6 +401,7 @@
     .cp-toolbar-userlist-drawer {
         background-color: @cp_userslist_bg;
         color: @toolbar-color;
+	    border-left: 1px solid @cp_toolbar-fade3;;
         .cp-toolbar-userlist-drawer-close {
             color: @toolbar-color;
         }
@@ -575,6 +576,9 @@
                         line-height: @toolbar_line-height;
                         display: inline-flex;
 
+                    }
+                    .cp-toolbar-title-edit{
+                        display: none !important;
                     }
                     input {
                         height: @toolbar_line-height;
