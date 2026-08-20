@@ -27,6 +27,24 @@ html.cp-dark ::-webkit-scrollbar-thumb {
     background-color: rgba(255,255,255,0.2) !important;
 }
 
+html.cp-dark-mode,
+html.cp-dark-mode[style],
+body.cp-dark-mode,
+body.cp-dark-mode[style] {
+    background-color: #000000 !important;
+    background: #000000 !important;
+    color: #ffffff !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    html[style],
+    body[style],
+    body.cke_editable[style] {
+        background-color: #000000 !important;
+        background: #000000 !important;
+        color: #ffffff !important;
+    }
+}
 
 body
 {
