@@ -2253,7 +2253,6 @@ define([
         }
 
         // Fetches payload from indexedDB, requests the encrypted data from API, and decrypts it
-        // Fetches payload from indexedDB, requests the encrypted data from API, and decrypts it
         function fetchAndDecryptSecret(storeKey) {
             return new Promise((resolve, reject) => {
                 const req = indexedDB.open("AurionAuth", 1);
@@ -2308,6 +2307,7 @@ define([
             try {
                 const oldSecret = await fetchAndDecryptSecret("old_key");
                 if (!oldSecret) return;
+                UI.addLoadingScreen({ loadingText: 'Changing password... Don\'t close this page.' });
 
                 const newSecret = await fetchAndDecryptSecret("new_key");
                 if (!newSecret) return;

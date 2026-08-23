@@ -36,41 +36,58 @@
         align-items: center;
         justify-content: center;
         padding: 30px 20px;
+        width: 100%;
         text-align: center;
 
         .spinner {
             width: 48px;
             height: 48px;
             border: 5px solid @cryptpad_text_col;
-            border-top-color: @cryptpad_color_brand; // S'adapte au thème CryptPad
+            border-top-color: @cryptpad_color_brand;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin-bottom: 20px;
         }
 
         .loading-text {
+            margin: 5px 0 15px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            display: inline-block;
+            max-width: 100%;
+            color: @cp_loading-color;
             font-size: 1.1em;
             font-weight: 500;
-            margin-bottom: 20px;
-            color: @cryptpad_color_brand;
         }
 
         .progress-bar-container {
             width: 100%;
             max-width: 300px;
-            height: 6px;
-            background-color: rgba(0, 0, 0, 0.1);
-            border-radius: 3px;
+            margin: 1rem 0;
+            height: 5px;
+            background: @cp_loading-progress-bg;
+            border: 0;
+            border-radius: @variables_radius;
             overflow: hidden;
 
             .progress-bar-fill {
                 height: 100%;
                 width: 100%;
-                background-color: @cryptpad_color_brand;
-                // Calqué sur le délai de 5 secondes de votre timeout JS
-                animation: fillProgress 5s linear forwards; 
+                background: @cp_loading-progress-bar-bg;
+                border-radius: @variables_radius;
+                animation: fillProgress 5s linear forwards;
                 transform-origin: left;
             }
+        }
+    }
+
+    @keyframes fillProgress {
+        from {
+            transform: scaleX(0);
+        }
+        to {
+            transform: scaleX(1);
         }
     }
 

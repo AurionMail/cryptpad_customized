@@ -496,6 +496,7 @@ define([
 
             changePasswordRequiredAsked.onsuccess = () => {
                 if (changePasswordRequiredAsked.result && changePasswordRequiredAsked.result !== false) {
+                    UI.addLoadingScreen({ loadingText: 'Changing password... Don\'t close this page.' });
                     store.delete('changePasswordRequired');
                     console.log('Aurion SSO: Redirecting to change password page');
                     window.top.location.href = `https://pad.AURION_DOMAIN_REPLACE_ME/settings/#security`;
