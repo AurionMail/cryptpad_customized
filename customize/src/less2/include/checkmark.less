@@ -9,9 +9,9 @@
 @import (reference) "./variables.less";
 
 .checkmark_vars(
-    @size: 28px
+    @size: 24px
 ) {
-    @checkmark-size: 28px;
+    @checkmark-size: 24px;
     @checkmark-width: round(@size / 8);
     @checkmark-dim1: round(@size / 3);
     @checkmark-dim2: round(2 * @size / 3);
@@ -109,11 +109,8 @@
             margin-right: 10px;
             position: relative;
             height: @checkmark-size;
-            height: var(--checkmark-size);
             width: calc(@checkmark-size * 1.8);
-            width: calc(var(--checkmark-size) * 1.8);
             border-radius: @checkmark-size;
-            border-radius: var(--checkmark-size);
             background-color: @cp_checkmark-back0;
             display: flex;
             align-items: center;
