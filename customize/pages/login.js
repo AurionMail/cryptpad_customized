@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2023 XWiki CryptPad Team <contact@cryptpad.org> and contributors
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
+// 2026.10 OK
 
 define([
     '/common/hyperscript.js',
@@ -38,7 +39,7 @@ define([
                 h('div.row.cp-page-title', h('h1', Msg.login_login)),
                 h('div.row', [
                     h('div.col-md-3'+ssoEnforced),
-                    h('div#userForm.form-group.col-md-6'+ssoEnforced, [
+                    h('form#userForm.form-group.col-md-6'+ssoEnforced, [
                         h('div.cp-login-instance', Msg._getKey('login_instance', [ Pages.Instance.name ])),
                         h('div.big-container', [
                             h('div.input-container', [
@@ -74,7 +75,7 @@ define([
                                     href: "/register/",
                                 }, Msg.login_register)
                             ),
-                            h('button.login', Msg.login_login),
+                            h('button.login', {type: 'submit'}, Msg.login_login),
                         ]),
                     ]),
                     h('div.col-md-3'+ssoEnforced),
